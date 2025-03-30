@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { useLocation } from "wouter";
 
 interface LoginFormProps {
   onSwitchToSignup: () => void;
@@ -23,6 +24,7 @@ export default function LoginForm({ onSwitchToSignup, onDemoMode }: LoginFormPro
   const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   
   const {
     register,
@@ -60,6 +62,9 @@ export default function LoginForm({ onSwitchToSignup, onDemoMode }: LoginFormPro
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
+      
+      // Navigate to dashboard
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       toast({

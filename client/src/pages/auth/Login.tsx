@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
@@ -6,12 +6,21 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@shared/schema";
+import { useLocation } from "wouter";
 
 export default function Login() {
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [isHandlingDemo, setIsHandlingDemo] = useState(false);
-  const { setUser } = useAuth();
+  const { setUser, user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+  
+  // Redirect to dashboard if user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
   
   const handleDemoMode = async () => {
     setIsHandlingDemo(true);
@@ -29,6 +38,9 @@ export default function Login() {
         title: "Demo mode activated",
         description: "You now have 10 minutes to explore EduHub.",
       });
+      
+      // Navigate to dashboard after successful demo activation
+      navigate("/dashboard");
     } catch (error) {
       console.error("Demo mode error:", error);
       toast({

@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@shared/schema";
+import { useLocation } from "wouter";
 
 interface SignupFormProps {
   onSwitchToLogin: () => void;
@@ -37,6 +38,7 @@ export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   
   const {
     register,
@@ -76,6 +78,9 @@ export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         title: "Account created!",
         description: "Your account has been successfully created.",
       });
+      
+      // Navigate to dashboard after successful account creation
+      navigate("/dashboard");
     } catch (error) {
       console.error("Registration error:", error);
       toast({
