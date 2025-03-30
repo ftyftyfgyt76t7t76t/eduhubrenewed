@@ -130,4 +130,5 @@ export type PostWithUser = Post & {
   commentsCount: number;
   sharesCount: number;
   liked?: boolean;
+  postType?: string;
 };
