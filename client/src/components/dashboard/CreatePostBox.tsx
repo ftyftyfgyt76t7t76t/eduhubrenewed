@@ -116,9 +116,9 @@ export default function CreatePostBox() {
           </div>
           
           {isExpanded && (
-            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-              <Card className="w-full max-w-lg rounded-xl shadow-xl">
-                <CardHeader>
+            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-0 backdrop-blur-sm animate-in fade-in duration-300">
+              <Card className="w-full max-w-lg rounded-xl shadow-xl m-4 animate-in zoom-in-95 duration-300">
+                <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-xl font-semibold">Create Post</CardTitle>
                     <Button 
@@ -131,7 +131,7 @@ export default function CreatePostBox() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   
                   <form onSubmit={handleSubmit}>
                     <div className="mb-3">
@@ -269,82 +269,105 @@ export default function CreatePostBox() {
             )}
           </div>
           <div className="flex-1">
-            <form onSubmit={handleSubmit}>
-              {isExpanded && (
-                <div className="mb-3">
-                  <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet" | "video")}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select post type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="regular">Regular Post</SelectItem>
-                      <SelectItem value="book_worksheet">Book or Worksheet</SelectItem>
-                      <SelectItem value="video">Video Lesson</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                onFocus={() => setIsExpanded(true)}
-                rows={isExpanded ? 3 : 2}
-                placeholder={
-                  isExpanded
-                    ? postType === "book_worksheet"
-                      ? "Describe your book or worksheet..."
-                      : postType === "video"
-                        ? "Describe your video lesson..."
-                        : "What's on your mind?"
-                    : "Share something with your classmates..."
-                }
-                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none"
-              />
-              
-              {isExpanded && (
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex space-x-3">
-                    <Button 
-                      type="button"
-                      variant="ghost"
-                      onClick={() => handleMediaClick("image")}
-                      className="flex items-center text-gray-500 hover:text-primary-500"
-                    >
-                      <i className="fas fa-image mr-1"></i>
-                      <span className="text-sm">Photo</span>
-                    </Button>
-                    <Button 
-                      type="button"
-                      variant="ghost"
-                      onClick={() => handleMediaClick("video")}
-                      className="flex items-center text-gray-500 hover:text-primary-500"
-                    >
-                      <i className="fas fa-video mr-1"></i>
-                      <span className="text-sm">Video</span>
-                    </Button>
-                    <Button 
-                      type="button"
-                      variant="ghost"
-                      onClick={() => handleMediaClick("document")}
-                      className="flex items-center text-gray-500 hover:text-primary-500"
-                    >
-                      <i className="fas fa-file-alt mr-1"></i>
-                      <span className="text-sm">Document</span>
-                    </Button>
-                  </div>
-                  <Button 
-                    type="submit"
-                    disabled={isSubmitting || !content.trim()}
-                    className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    {isSubmitting ? "Posting..." : "Post"}
-                  </Button>
-                </div>
-              )}
-            </form>
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onFocus={() => setIsExpanded(true)}
+              rows={2}
+              placeholder="Share something with your classmates..."
+              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none"
+            />
           </div>
         </div>
+        
+        {isExpanded && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-0 backdrop-blur-sm animate-in fade-in duration-300">
+            <Card className="w-full max-w-lg rounded-xl shadow-xl m-4 animate-in zoom-in-95 duration-300">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-xl font-semibold">Create Post</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setIsExpanded(false)}
+                    className="rounded-full h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet" | "video")}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select post type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="regular">Regular Post</SelectItem>
+                        <SelectItem value="book_worksheet">Book or Worksheet</SelectItem>
+                        <SelectItem value="video">Video Lesson</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <Textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder={
+                      postType === "book_worksheet" 
+                        ? "Describe your book or worksheet..." 
+                        : postType === "video"
+                          ? "Describe your video lesson..."
+                          : "What's on your mind?"
+                    }
+                    rows={4}
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none mb-3"
+                  />
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="flex space-x-3">
+                      <Button 
+                        type="button"
+                        variant="ghost"
+                        onClick={() => handleMediaClick("image")}
+                        className="flex items-center text-gray-500 hover:text-primary-500"
+                      >
+                        <i className="fas fa-image mr-1"></i>
+                        <span className="text-sm">Photo</span>
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant="ghost"
+                        onClick={() => handleMediaClick("video")}
+                        className="flex items-center text-gray-500 hover:text-primary-500"
+                      >
+                        <i className="fas fa-video mr-1"></i>
+                        <span className="text-sm">Video</span>
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant="ghost"
+                        onClick={() => handleMediaClick("document")}
+                        className="flex items-center text-gray-500 hover:text-primary-500"
+                      >
+                        <i className="fas fa-file-alt mr-1"></i>
+                        <span className="text-sm">Document</span>
+                      </Button>
+                    </div>
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting || !content.trim()}
+                      className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      {isSubmitting ? "Posting..." : "Post"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
         
         {/* Hidden file input */}
         <input 
