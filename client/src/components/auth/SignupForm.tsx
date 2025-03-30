@@ -355,9 +355,9 @@ export default function SignupForm({ onSwitchToLogin }: SignupFormProps) {
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5"
+        className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5"
       >
-        {isLoading ? "Creating Account..." : "Create Account"}
+        <span className="mx-auto">{isLoading ? "Creating Account..." : "Continue"}</span>
       </Button>
     </form>
   );
