@@ -24,7 +24,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       setDemoTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Log out when timer reaches zero
+          // Log out when timer reaches zero, redirect will be handled by the DemoModeTimer component
           logout();
           return 0;
         }

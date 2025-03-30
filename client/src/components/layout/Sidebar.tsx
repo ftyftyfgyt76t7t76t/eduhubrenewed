@@ -9,15 +9,19 @@ interface SidebarProps {
 
 export default function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user, isDemo } = useAuth();
   
-  const navItems = [
+  const baseNavItems = [
     { path: "/dashboard", label: "Home", icon: "fas fa-home" },
     { path: "/videos", label: "Videos", icon: "fas fa-video" },
     { path: "/messaging", label: "Messaging", icon: "fas fa-comments" },
     { path: "/books", label: "Books & Worksheets", icon: "fas fa-book" },
-    { path: "/profile", label: "Profile Settings", icon: "fas fa-user-cog" },
   ];
+  
+  // Add profile settings only for non-demo users
+  const navItems = isDemo 
+    ? baseNavItems 
+    : [...baseNavItems, { path: "/profile", label: "Profile Settings", icon: "fas fa-user-cog" }];
   
   return (
     <div className={cn("w-64 bg-white border-r border-gray-200 flex flex-col h-screen", className)}>
