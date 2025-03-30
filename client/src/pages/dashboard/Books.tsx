@@ -20,7 +20,7 @@ export default function Books() {
   // Fetch book/worksheet posts
   const { data: bookPosts, isLoading } = useQuery<PostWithUser[]>({
     queryKey: ['/api/posts'],
-    select: (posts) => posts.filter(post => post.postType === 'book_worksheet')
+    select: (posts) => posts.filter(post => (post as any).postType === 'book_worksheet')
   });
   
   const renderBookPost = (post: PostWithUser) => {
