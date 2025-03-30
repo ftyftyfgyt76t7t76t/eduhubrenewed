@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@shared/schema";
 import { useLocation } from "wouter";
+import logoSrc from "@/assets/logo.svg";
 
 export default function Login() {
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
@@ -58,9 +59,7 @@ export default function Login() {
       {/* Logo and Header */}
       <div className="text-center mb-8 animate-pulse-slow">
         <div className="flex items-center justify-center mb-4">
-          <div className="text-5xl font-bold font-['Poppins'] bg-clip-text text-transparent bg-gradient-to-r from-primary-500 via-primary-900 to-[#F72585]">
-            EduHub
-          </div>
+          <img src={logoSrc} alt="EduHub Logo" className="h-16" />
         </div>
         <h2 className="text-lg md:text-xl text-gray-600 font-medium">Connect, Learn, Grow</h2>
       </div>

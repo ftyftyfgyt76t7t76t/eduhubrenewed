@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import logoSrc from "@/assets/logo.svg";
 
 interface SidebarProps {
   className?: string;
@@ -22,9 +23,9 @@ export default function Sidebar({ className }: SidebarProps) {
     <div className={cn("w-64 bg-white border-r border-gray-200 flex flex-col h-screen", className)}>
       {/* Logo */}
       <div className="p-4 border-b border-gray-200">
-        <div className="text-2xl font-bold font-['Poppins'] bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-900">
-          EduHub
-        </div>
+        <Link href="/dashboard" className="flex items-center">
+          <img src={logoSrc} alt="EduHub Logo" className="h-8" />
+        </Link>
       </div>
       
       {/* Navigation Links */}
