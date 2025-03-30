@@ -1,58 +1,60 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 
+// Default demo mode time in seconds (10 minutes)
+const DEFAULT_DEMO_TIME = 10 * 60;
+// Warning threshold in seconds (1 minute)
+const WARNING_THRESHOLD = 60;
+
 interface DemoContextType {
   demoTimeLeft: number;
   isDemoExpiring: boolean;
 }
 
-const DemoContext = createContext<DemoContextType | null>(null);
+const DemoContext = createContext<DemoContextType>({
+  demoTimeLeft: DEFAULT_DEMO_TIME,
+  isDemoExpiring: false
+});
 
 export function DemoProvider({ children }: { children: ReactNode }) {
-  const { isDemo, logout } = useAuth();
-  const [demoTimeLeft, setDemoTimeLeft] = useState(600); // 10 minutes in seconds
+  const { isDemo } = useAuth();
+  const [demoTimeLeft, setDemoTimeLeft] = useState(DEFAULT_DEMO_TIME);
   const [isDemoExpiring, setIsDemoExpiring] = useState(false);
   
+  // Set up timer for demo mode
   useEffect(() => {
     if (!isDemo) {
-      setDemoTimeLeft(600);
-      setIsDemoExpiring(false);
       return;
     }
     
-    const timer = setInterval(() => {
-      setDemoTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          // Log out when timer reaches zero, redirect will be handled by the DemoModeTimer component
-          logout();
-          return 0;
-        }
-        
-        // Set expiring flag when less than 1 minute remains
-        if (prev <= 60 && !isDemoExpiring) {
+    // Initialize or reset the timer when demo mode is activated
+    setDemoTimeLeft(DEFAULT_DEMO_TIME);
+    setIsDemoExpiring(false);
+    
+    // Set up interval to decrement timer
+    const interval = setInterval(() => {
+      setDemoTimeLeft(prevTime => {
+        // Check if time is running low
+        if (prevTime <= WARNING_THRESHOLD && !isDemoExpiring) {
           setIsDemoExpiring(true);
         }
         
-        return prev - 1;
+        // Prevent going below zero
+        return Math.max(0, prevTime - 1);
       });
     }, 1000);
     
-    return () => clearInterval(timer);
-  }, [isDemo, logout, isDemoExpiring]);
+    // Clean up interval
+    return () => clearInterval(interval);
+  }, [isDemo, isDemoExpiring]);
   
-  const value = {
-    demoTimeLeft,
-    isDemoExpiring,
-  };
-  
-  return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
+  return (
+    <DemoContext.Provider value={{ demoTimeLeft, isDemoExpiring }}>
+      {children}
+    </DemoContext.Provider>
+  );
 }
 
 export function useDemo() {
-  const context = useContext(DemoContext);
-  if (!context) {
-    throw new Error("useDemo must be used within a DemoProvider");
-  }
-  return context;
+  return useContext(DemoContext);
 }

@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { loginUser, sendMfaVerificationCode } from "@/lib/auth";
+import VerificationCodeModal from "./VerificationCodeModal";
 
 interface LoginFormProps {
   onSwitchToSignup: () => void;
@@ -26,6 +28,9 @@ export default function LoginForm({ onSwitchToSignup, onDemoMode }: LoginFormPro
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isRecovering, setIsRecovering] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationId, setVerificationId] = useState<string | undefined>(undefined);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const { setUser } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -46,29 +51,58 @@ export default function LoginForm({ onSwitchToSignup, onDemoMode }: LoginFormPro
     setIsLoading(true);
     
     try {
-      const response = await apiRequest("POST", "/api/auth/login", {
-        email: data.email,
-        password: data.password,
-      });
+      // Attempt to log in with Firebase (may require MFA)
+      const loginResult = await loginUser(data.email, data.password);
       
-      const user = await response.json();
-      setUser(user);
-      
-      if (data.rememberMe) {
-        // Set a longer session expiry in a real app
-        // For now, we're just storing this in localStorage
-        localStorage.setItem("rememberMe", "true");
-      } else {
-        localStorage.removeItem("rememberMe");
+      if (loginResult.success) {
+        // Standard login successful
+        setUser(loginResult.user);
+        
+        if (data.rememberMe) {
+          // Set a longer session expiry in a real app
+          localStorage.setItem("rememberMe", "true");
+        } else {
+          localStorage.removeItem("rememberMe");
+        }
+        
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully logged in.",
+        });
+        
+        // Navigate to dashboard
+        navigate("/dashboard");
+      } else if (loginResult.mfaRequired) {
+        // MFA is required, get the verification code
+        // Create invisible recaptcha container if needed
+        if (!document.getElementById('recaptcha-mfa-container')) {
+          const recaptchaDiv = document.createElement('div');
+          recaptchaDiv.id = 'recaptcha-mfa-container';
+          document.body.appendChild(recaptchaDiv);
+        }
+        
+        try {
+          // Use the first hint if available
+          const hint = loginResult.hints && loginResult.hints.length > 0 
+            ? loginResult.hints[0] 
+            : undefined;
+            
+          // Show verification modal
+          setPhoneNumber(hint?.phoneNumber || 'your phone');
+          
+          // Request verification code
+          const verId = await sendMfaVerificationCode('recaptcha-mfa-container', hint?.uid);
+          setVerificationId(verId);
+          setShowVerification(true);
+        } catch (mfaError) {
+          console.error("Error setting up MFA:", mfaError);
+          toast({
+            title: "Authentication error",
+            description: "Failed to send verification code. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
-      
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
-      });
-      
-      // Navigate to dashboard
-      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -238,6 +272,28 @@ export default function LoginForm({ onSwitchToSignup, onDemoMode }: LoginFormPro
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Two-factor verification modal */}
+      {showVerification && (
+        <VerificationCodeModal
+          isOpen={showVerification}
+          onClose={() => setShowVerification(false)}
+          onSuccess={() => {
+            setShowVerification(false);
+            toast({
+              title: "Login successful",
+              description: "You have been verified and logged in.",
+            });
+            navigate("/dashboard");
+          }}
+          verificationId={verificationId}
+          phoneNumber={phoneNumber}
+          mode="login"
+        />
+      )}
+      
+      {/* Hidden recaptcha container */}
+      <div id="recaptcha-mfa-container" style={{ display: 'none' }}></div>
     </>
   );
 }

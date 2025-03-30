@@ -1,43 +1,42 @@
-import { useDemo } from "@/context/DemoContext";
-import { useAuth } from "@/context/AuthContext";
-import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { useDemo } from "@/context/DemoContext";
 
 export default function DemoModeTimer() {
   const { demoTimeLeft, isDemoExpiring } = useDemo();
-  const { isDemo } = useAuth();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   
-  // Format seconds into MM:SS
-  const formatTimeLeft = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
   
-  // Redirect to sign up page when timer expires
+  // Redirect when timer reaches zero
   useEffect(() => {
-    if (isDemo && demoTimeLeft === 0) {
-      navigate("/auth/signup");
+    if (demoTimeLeft <= 0) {
+      setLocation("/auth/signup");
     }
-  }, [isDemo, demoTimeLeft, navigate]);
-  
-  if (!isDemo) return null;
+  }, [demoTimeLeft, setLocation]);
   
   return (
-    <div 
+    <Badge 
+      variant="outline" 
       className={cn(
-        "fixed top-4 right-4 z-50 px-3 py-2 rounded-lg text-white font-semibold shadow-md flex items-center space-x-2",
-        isDemoExpiring 
-          ? "bg-red-500 animate-pulse" 
-          : "bg-blue-600"
+        "transition-all duration-300 cursor-default",
+        isDemoExpiring && "bg-red-100 border-red-300 text-red-700 animate-pulse"
       )}
     >
-      <span className="text-xs uppercase">Demo Mode</span>
-      <span className="text-sm">
-        {formatTimeLeft(demoTimeLeft)}
+      <span className="mr-1">Demo Mode:</span>
+      <span className={cn(
+        "font-mono font-bold",
+        isDemoExpiring && "text-red-600"
+      )}>
+        {formatTime(demoTimeLeft)}
       </span>
-    </div>
+    </Badge>
   );
 }
