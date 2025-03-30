@@ -7,12 +7,14 @@ import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useMobile } from "@/hooks/use-mobile";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CreatePostBox() {
   const [content, setContent] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mediaType, setMediaType] = useState<"image" | "video" | "document" | null>(null);
+  const [postType, setPostType] = useState<"regular" | "book_worksheet">("regular");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -37,19 +39,27 @@ export default function CreatePostBox() {
         content,
         mediaType: mediaType,
         mediaUrl: null, // In a real app, we would upload the file and get a URL
+        postType: postType // Add the post type
       });
       
       // Reset form
       setContent("");
       setIsExpanded(false);
       setMediaType(null);
+      setPostType("regular");
       
-      // Invalidate posts query to refresh the feed
+      // Invalidate the appropriate query based on post type
+      if (postType === "book_worksheet") {
+        queryClient.invalidateQueries({ queryKey: ["/api/books"] });
+      }
+      // Always invalidate posts query to refresh the feed
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
       
       toast({
-        title: "Post created!",
-        description: "Your post has been published.",
+        title: postType === "book_worksheet" ? "Book/Worksheet Added!" : "Post created!",
+        description: postType === "book_worksheet" 
+          ? "Your book or worksheet has been published." 
+          : "Your post has been published.",
       });
     } catch (error) {
       console.error("Failed to create post:", error);
@@ -112,10 +122,22 @@ export default function CreatePostBox() {
                   </div>
                   
                   <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                      <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet")}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select post type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="regular">Regular Post</SelectItem>
+                          <SelectItem value="book_worksheet">Book or Worksheet</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
                     <Textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      placeholder="What's on your mind?"
+                      placeholder={postType === "book_worksheet" ? "Describe your book or worksheet..." : "What's on your mind?"}
                       rows={4}
                       className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none mb-3"
                     />
@@ -229,12 +251,28 @@ export default function CreatePostBox() {
           </div>
           <div className="flex-1">
             <form onSubmit={handleSubmit}>
+              {isExpanded && (
+                <div className="mb-3">
+                  <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet")}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select post type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular">Regular Post</SelectItem>
+                      <SelectItem value="book_worksheet">Book or Worksheet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            
               <Textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onFocus={() => setIsExpanded(true)}
                 rows={isExpanded ? 3 : 2}
-                placeholder="Share something with your classmates..."
+                placeholder={postType === "book_worksheet" && isExpanded 
+                  ? "Describe your book or worksheet..." 
+                  : "Share something with your classmates..."}
                 className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none"
               />
               

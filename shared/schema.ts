@@ -34,6 +34,7 @@ export const posts = pgTable("posts", {
   content: text("content").notNull(),
   mediaUrl: text("media_url"),
   mediaType: text("media_type"),
+  postType: text("post_type").default("regular"), // "regular" or "book_worksheet"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
