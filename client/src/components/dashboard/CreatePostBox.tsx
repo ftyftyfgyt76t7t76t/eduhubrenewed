@@ -1,20 +1,21 @@
 import { useState, useRef, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useMobile } from "@/hooks/use-mobile";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X } from "lucide-react";
 
 export default function CreatePostBox() {
   const [content, setContent] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mediaType, setMediaType] = useState<"image" | "video" | "document" | null>(null);
-  const [postType, setPostType] = useState<"regular" | "book_worksheet">("regular");
+  const [postType, setPostType] = useState<"regular" | "book_worksheet" | "video">("regular");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -51,15 +52,23 @@ export default function CreatePostBox() {
       // Invalidate the appropriate query based on post type
       if (postType === "book_worksheet") {
         queryClient.invalidateQueries({ queryKey: ["/api/books"] });
+      } else if (postType === "video") {
+        queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
       }
       // Always invalidate posts query to refresh the feed
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
       
       toast({
-        title: postType === "book_worksheet" ? "Book/Worksheet Added!" : "Post created!",
+        title: postType === "book_worksheet" 
+          ? "Book/Worksheet Added!" 
+          : postType === "video" 
+            ? "Video Lesson Added!" 
+            : "Post created!",
         description: postType === "book_worksheet" 
           ? "Your book or worksheet has been published." 
-          : "Your post has been published.",
+          : postType === "video"
+            ? "Your video lesson has been published."
+            : "Your post has been published.",
       });
     } catch (error) {
       console.error("Failed to create post:", error);
@@ -107,29 +116,33 @@ export default function CreatePostBox() {
           </div>
           
           {isExpanded && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <Card className="w-full max-w-lg">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">Create Post</h3>
+            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+              <Card className="w-full max-w-lg rounded-xl shadow-xl">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl font-semibold">Create Post</CardTitle>
                     <Button 
                       variant="ghost" 
-                      size="sm"
+                      size="icon"
                       onClick={() => setIsExpanded(false)}
+                      className="rounded-full h-8 w-8 p-0"
                     >
-                      <i className="fas fa-times"></i>
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
+                </CardHeader>
+                <CardContent className="p-4">
                   
                   <form onSubmit={handleSubmit}>
                     <div className="mb-3">
-                      <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet")}>
+                      <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet" | "video")}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select post type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="regular">Regular Post</SelectItem>
                           <SelectItem value="book_worksheet">Book or Worksheet</SelectItem>
+                          <SelectItem value="video">Video Lesson</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -137,7 +150,13 @@ export default function CreatePostBox() {
                     <Textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      placeholder={postType === "book_worksheet" ? "Describe your book or worksheet..." : "What's on your mind?"}
+                      placeholder={
+                        postType === "book_worksheet" 
+                          ? "Describe your book or worksheet..." 
+                          : postType === "video"
+                            ? "Describe your video lesson..."
+                            : "What's on your mind?"
+                      }
                       rows={4}
                       className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none mb-3"
                     />
@@ -175,7 +194,7 @@ export default function CreatePostBox() {
                       <Button 
                         type="submit"
                         disabled={isSubmitting || !content.trim()}
-                        className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+                        className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors font-medium"
                       >
                         {isSubmitting ? "Posting..." : "Post"}
                       </Button>
@@ -253,13 +272,14 @@ export default function CreatePostBox() {
             <form onSubmit={handleSubmit}>
               {isExpanded && (
                 <div className="mb-3">
-                  <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet")}>
+                  <Select value={postType} onValueChange={(value) => setPostType(value as "regular" | "book_worksheet" | "video")}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select post type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="regular">Regular Post</SelectItem>
                       <SelectItem value="book_worksheet">Book or Worksheet</SelectItem>
+                      <SelectItem value="video">Video Lesson</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -270,9 +290,15 @@ export default function CreatePostBox() {
                 onChange={(e) => setContent(e.target.value)}
                 onFocus={() => setIsExpanded(true)}
                 rows={isExpanded ? 3 : 2}
-                placeholder={postType === "book_worksheet" && isExpanded 
-                  ? "Describe your book or worksheet..." 
-                  : "Share something with your classmates..."}
+                placeholder={
+                  isExpanded
+                    ? postType === "book_worksheet"
+                      ? "Describe your book or worksheet..."
+                      : postType === "video"
+                        ? "Describe your video lesson..."
+                        : "What's on your mind?"
+                    : "Share something with your classmates..."
+                }
                 className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition resize-none"
               />
               
@@ -310,7 +336,7 @@ export default function CreatePostBox() {
                   <Button 
                     type="submit"
                     disabled={isSubmitting || !content.trim()}
-                    className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+                    className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors font-medium"
                   >
                     {isSubmitting ? "Posting..." : "Post"}
                   </Button>
